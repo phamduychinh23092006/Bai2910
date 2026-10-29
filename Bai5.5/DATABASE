@@ -1,1 +1,51 @@
 
+CREATE DATABASE InventoryDB;
+
+USE InventoryDB;
+
+
+-- 1. Bảng Nhà Cung Cấp
+CREATE TABLE NhaCungCap (
+    MaNCC INT IDENTITY(1,1) PRIMARY KEY,
+    TenNCC NVARCHAR(150) NOT NULL,
+    DienThoai VARCHAR(15) UNIQUE,
+    DiaChi NVARCHAR(255)
+);
+
+-- 2. Bảng Vật Tư / Sản Phẩm
+CREATE TABLE VatTu (
+    MaVatTu VARCHAR(20) PRIMARY KEY,
+    TenVatTu NVARCHAR(150) NOT NULL,
+    DVT NVARCHAR(20),
+    SoLuongTon DECIMAL(18,2) DEFAULT 0 CHECK (SoLuongTon >= 0)
+);
+
+-- 3. Bảng Phiếu Kho
+CREATE TABLE PhieuKho (
+    MaPhieu INT IDENTITY(1,1) PRIMARY KEY,
+    LoaiPhieu NVARCHAR(10) NOT NULL CHECK (LoaiPhieu IN (N'NHAP', N'XUAT')),
+    NgayLap DATETIME DEFAULT GETDATE(),
+    MaNCC INT NULL FOREIGN KEY REFERENCES NhaCungCap(MaNCC),
+    TongTien DECIMAL(18,2) DEFAULT 0
+);
+
+-- 4. Bảng Chi Tiết Phiếu Kho
+CREATE TABLE ChiTietPhieuKho (
+    MaPhieu INT FOREIGN KEY REFERENCES PhieuKho(MaPhieu) ON DELETE CASCADE,
+    MaVatTu VARCHAR(20) FOREIGN KEY REFERENCES VatTu(MaVatTu),
+    SoLuong DECIMAL(18,2) NOT NULL CHECK (SoLuong > 0),
+    DonGia DECIMAL(18,2) NOT NULL CHECK (DonGia >= 0),
+    PRIMARY KEY (MaPhieu, MaVatTu)
+);
+
+-- NẠP DỮ LIỆU MẪU
+INSERT INTO NhaCungCap (TenNCC, DienThoai, DiaChi) VALUES
+(N'Công ty TNHH Thép Việt', '0901234567', N'Hà Nội'),
+(N'Nhà phân phối Xi Măng Hà Tiên', '0912345678', N'TP. Hồ Chí Minh'),
+(N'Tập đoàn Sơn DULUX', '0923456789', N'Đà Nẵng');
+
+INSERT INTO VatTu (MaVatTu, TenVatTu, DVT, SoLuongTon) VALUES
+('VT001', N'Thép D10', N'Cây', 150.00),
+('VT002', N'Xi măng PCB40', N'Bao', 10.00), -- Số lượng tồn thấp dưới ngưỡng
+('VT003', N'Sơn lót chống thấm', N'Thùng', 5.00), -- Số lượng tồn thấp dưới ngưỡng
+('VT004', N'Cát xây dựng', N'M3', 80.00);
